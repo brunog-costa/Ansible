@@ -1,0 +1,9 @@
+---
+- name: Install downloaded updates and reboots machine
+  hosts: windows_server
+
+  tasks:
+  - name: install downloaded updates
+    win_updates:
+       state: downloaded
+       reboot: yes

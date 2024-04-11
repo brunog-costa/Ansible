@@ -1,0 +1,18 @@
+---
+- name: 
+  hosts: windows_server
+
+  tasks:
+  - mssql_db:
+      name: \\.\pipe\MICROSOFT##WID\tsql\query - server
+      state: present
+
+  - copy:
+      src: dump.sql
+      dest: C:\temp
+
+
+  - mssql_db:
+      name: my_db
+      state: import
+      target: C:\temp

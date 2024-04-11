@@ -1,0 +1,28 @@
+---
+- name: Extracts susdb reports
+  hosts: windows_server
+
+  tasks:
+  - name: connects to WSUS MSSQL Data Base 
+    win_command:
+      args: "sqlcmd -S RPVS019\WSUSDB -E -i \"C:\temp\WSUS maintanance\" -o \"c:\temp\wsusreport\daily_report.txt\" -s \",\" -h -1"
+
+
+#no servidor crontab -e 00***ansible-playbook /etc/ansible/playbooks/path/wsus_automatic_report.yml
+
+
+
+
+#\\.\pipe\MICROSOFT##WID\tsql\query - server 
+SET NOCOUNT ON 
+SELECT CURRENT_TIMESTAMP as Date,tbTargetGroup.Name, tbComputerTarget.FullDomainName, tbComputerTarget.IPAddress, tbComputerSummaryForMicrosoftUpdates.Installed, tbComputerSummaryForMicrosoftUpdates.NotInstalled, tbComputerSummaryForMicrosoftUpdates.InstalledPendingReboot, tbComputerSummaryForMicrosoftUpdates.Downloaded, tbComputerSummaryForMicrosoftUpdates.Failed, tbComputerSummaryForMicrosoftUpdates.Unknown
+FROM SUSDB.dbo.tbComputerTarget tbComputerTarget, SUSDB.dbo.tbTargetGroup tbTargetGroup, SUSDB.dbo.tbTargetInTargetGroup tbTargetInTargetGroup, SUSDB.dbo.tbComputerSummaryForMicrosoftUpdates
+WHERE tbTargetInTargetGroup.TargetGroupID = tbTargetGroup.TargetGroupID AND tbTargetInTargetGroup.TargetID = tbComputerTarget.TargetID AND tbComputerTarget.TargetID = tbComputerSummaryForMicrosoftUpdates.TargetID AND tbTargetGroup.Name != 'Unassigned Computers'
+ORDER BY tbTargetGroup.Name ASC 
+
+# querry Invoke-Sqlcmd -Database -ServerInstance -Username -Password -Query
+
+Invoke-Sqlcmd -Query SELECT CURRENT_TIMESTAMP as Date,tbTargetGroup.Name, tbComputerTarget.FullDomainName, tbComputerTarget.IPAddress, tbComputerSummaryForMicrosoftUpdates.Installed, tbComputerSummaryForMicrosoftUpdates.NotInstalled, tbComputerSummaryForMicrosoftUpdates.InstalledPendingReboot, tbComputerSummaryForMicrosoftUpdates.Downloaded, tbComputerSummaryForMicrosoftUpdates.Failed, tbComputerSummaryForMicrosoftUpdates.Unknown
+FROM SUSDB.dbo.tbComputerTarget tbComputerTarget, SUSDB.dbo.tbTargetGroup tbTargetGroup, SUSDB.dbo.tbTargetInTargetGroup tbTargetInTargetGroup, SUSDB.dbo.tbComputerSummaryForMicrosoftUpdates
+WHERE tbTargetInTargetGroup.TargetGroupID = tbTargetGroup.TargetGroupID AND tbTargetInTargetGroup.TargetID = tbComputerTarget.TargetID AND tbComputerTarget.TargetID = tbComputerSummaryForMicrosoftUpdates.TargetID AND tbTargetGroup.Name != 'Unassigned Computers'
+ORDER BY tbTargetGroup.Name ASC 

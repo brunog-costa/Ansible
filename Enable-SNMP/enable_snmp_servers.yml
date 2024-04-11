@@ -1,0 +1,13 @@
+---
+- name: Enable SNMP Service && SNMP RSAT Tools
+  Hosts: windows_server 
+  become: true 
+
+  task: 
+  - name: Install Windows feature SNMP Service 
+    win_shell: Install_WindowsFeature -Name SNMP-Service -verbose 
+    state: present
+
+  - name: Install Windows Remote Server Administration Terminal management tools
+    win_shell: Install_WindowsFeature -Name RSAT -InstallAllSubFeature -verbose 
+    state: present 

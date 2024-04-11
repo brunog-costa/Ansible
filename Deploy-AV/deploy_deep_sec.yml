@@ -1,0 +1,88 @@
+---                                                                                                                                                                                                                                                           
+    - name: Install Apex One updating/or removing Officescan, if applicable                                                                                                                                                                                   
+      hosts: windows                                                                                                                                                                                                                                          
+      gather_facts: no                                                                                                                                                                                                                                        
+      tasks:                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                              
+        - name: Copy files to target                                                                                                                                                                                                                          
+          win_copy:                                                                                                                                                                                                                                           
+            src: /etc/ansible/vault/ansible_assets/apex_one/                                                                                                                                                                                                  
+            dest: C:\temp\apex_one\                                                                                                                                                                                                                           
+          tags: [install, uninstall, addtask]                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                              
+        - name: Remove old agent                                                                                                                                                                                                                              
+          win_command: C:\temp\apex_one\sa_uninstall\CUT_Silent.exe -noinstall                                                                                                                                                                                
+          tags: uninstall                                                                                                                                                                                                                                     
+                                                                                                                                                                                                                                                              
+        - name: Create task to install Apex                                                                                                                                                                                                                   
+          win_shell: $Actions = @(); $Actions += New-ScheduledTaskAction -Execute 'msiexec.exe' -Argument '/qn /quiet /norestart /i C:\temp\apex_one\agent_cloud_x64.msi'; $Actions += New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-c $TS = N
+ew-Object -ComObject Schedule.Service; $TS.Connect($env:COMPUTERNAME); $TaskFolder = $TS.GetFolder("\"); $Tasks = $TaskFolder.GetTasks(1); $TaskToDelete = "apex_deploy"; foreach($Task in $Tasks){ if($Task.Name -eq $TaskToDelete){Write-Host ("Task " +$Tas
+k.Name+" will be removed"); $TaskFolder.DeleteTask($Task.Name,0)}}'; $Actions += New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-c Remove-Item -Recurse -Force -Path C:\temp\apex_deploy\sa_uninstall'; $Trigger = New-ScheduledTaskTrigger -AtS
+tartup; $Description = 'Run Apex One Installer and remove task itself'; $Principal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest; $Task = New-ScheduledTask -Action $Actions -Trigger $Trigger -Descr
+iption $Description -Principal $Principal ; Register-ScheduledTask apex_deploy -InputObject $Task                                                                                                                                                             
+          tags: [addtask, never]                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                              
+        - name: Install Apex One SaaS                                                                                                                                                                                                                         
+          win_package:                                                                                                                                                                                                                                        
+            product_id: '{}'                                                                                                                                                                                              
+            path: C:\temp\apex_one\agent_cloud_x64.msi                                                                                                                                                                                                        
+            state: present                                                                                                                                                                                                                                    
+          tags: install                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                              
+        - name: Remove temporary folder from system                                                                                                                                                                                                           
+          win_file:                                                                                                                                                                                                                                           
+            path: C:\temp\apex_one                                                                                                                                                                                                                            
+            state: absent                                                                                                                                                                                                                                     
+          tags: installcd ..
+          
+
+##########################################################################
+
+Copy files from deep sec
+
+---
+    - name: Install Apex One updating/or removing Officescan, if applicable                                                                                                                                                                                   
+      hosts: windows                                                                                                                                                                                                                                          
+      gather_facts: no                                                                                                                                                                                                                                        
+      tasks:     
+
+        - name: Copy a folder recursively where the source is on the remote host
+          ansible.windows.win_copy:
+          src: C:\Temp\DeepSec\
+          dest: /etc/ansible/vault/ansible_assets/deep_security_v12/   
+          remote_src: yes
+
+
+###############################################################################
+
+---                                                                                                                                                                                                                                                           
+    - name: Install Deep Security removing Apex One                                                                                                                                                                                   
+      hosts: windows_server                                                                                                                                                                                                                                          
+      gather_facts: no                  i                                                                                                                                                                                                                      
+      tasks:                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                              
+        - name: Copy files to target                                                                                                                                                                                                                          
+          win_copy:                                                                                                                                                                                                                                           
+            src: /etc/ansible/vault/ansible_assets/deep_security_v12/                                                                                                                                                                                                  
+            dest: C:\temp\deepsec\                                                                                                                                                                                                                           
+          tags: [install, uninstall, addtask]                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                              
+        - name: Remove old agent                                                                                                                                                                                                                              
+          win_command: C:\temp\deepsec\CUT_forA1\CUT_Silent.exe -noinstall                                                                                                                                                                                
+          tags: uninstall                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                              
+        - name: Install Deep Security agent                                                                                                                                                                                                                         
+          win_package:                                                                                                                                                                                                                                                                                                                                                                                                                                     
+            path: C:\temp\deepsec\Agent-Core.msi                                                                                                                                                                                                        
+            state: present                                                                                                                                                                                                                                    
+          tags: install   
+
+        - name: Activate Deep Security Agent 
+          ansible.windows.win_command: powershell.exe -File C:\temp\deepsec\AgemtDeploymentScript.ps1                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                              
+        - name: Remove temporary folder from system                                                                                                                                                                                                           
+          win_file:                                                                                                                                                                                                                                           
+            path: C:\temp\deepsec                                                                                                                                                                                                                            
+            state: absent                                                                                                                                                                                                                                     
+          tags: install
+          from Crypto.Cipher import AES key = 'from openssl' iv = 'from openssl' with open('wonkatania.enc','rb') as f: cipher_text = f.read() decr = AES.new(bytes.fromhex(key), AES.MODE_CBC, bytes.fromhex(iv)) with open('wonkatania.txt',"wb") as f: f.write(decr.decrypt(cipher_text)) f.close()

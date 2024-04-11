@@ -1,0 +1,26 @@
+---
+- name: Enable SNMP Service && SNMP RSAT Tools for servers with WinRM disabled
+  hosts: windows_server
+
+  tasks: 
+  - name: Install Windows feature SNMP Service 
+    win_command: 
+      args: Dism.exe /online /enable-feature /FeatureName:SNMP
+
+  - name: Install Windows Remote Server Administration Terminal management tools for SNMP
+    win_command: 
+      args: Dism.exe /online /enable-feature /FeatureName:Server-RSAT-SNMP /ALL
+ 
+  - name: Add the necessary registry key for the Community configuration 
+    win_regedit: 
+       path: HKLM:\System\CurrentControlSet\Services\SNMP\Parameters\ValidCommunities
+       name: xtagjkpo
+       data: 4
+       type: REG_DWORD
+       
+  - name: Add the necessary registry key for the Manager configuration  
+    win_regedit: 
+       path: HKLM:\System\CurrentControlSet\Services\SNMP\Parameters\PermittedManagers
+       name: 2
+       data: 10.10.10.10
+       type: REG_SZ
